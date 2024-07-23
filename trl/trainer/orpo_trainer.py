@@ -109,6 +109,7 @@ class ORPOTrainer(Trainer):
         peft_config: Optional[Dict] = None,
         compute_metrics: Optional[Callable[[EvalLoopOutput], Dict]] = None,
     ):
+        print("wenxin: init ORPOTrainer")
         if args.model_init_kwargs is None:
             model_init_kwargs = {}
         elif not isinstance(model, str):
@@ -269,7 +270,7 @@ class ORPOTrainer(Trainer):
         self.aux_loss_enabled = getattr(model.config, "output_router_logits", False)
 
         self._stored_metrics = defaultdict(lambda: defaultdict(list))
-
+        
         # Compute that only on the main process for faster data processing.
         # see: https://github.com/huggingface/trl/pull/1255
         with PartialState().local_main_process_first():
