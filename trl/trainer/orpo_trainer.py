@@ -270,7 +270,8 @@ class ORPOTrainer(Trainer):
         self.aux_loss_enabled = getattr(model.config, "output_router_logits", False)
 
         self._stored_metrics = defaultdict(lambda: defaultdict(list))
-        
+
+        import pdb; pdb.set_trace()
         # Compute that only on the main process for faster data processing.
         # see: https://github.com/huggingface/trl/pull/1255
         with PartialState().local_main_process_first():
