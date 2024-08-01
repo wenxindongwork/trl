@@ -657,9 +657,7 @@ class ORPOTrainer(Trainer):
             labels = labels[:, 1:].clone()
             logits = logits[:, :-1, :]
         loss_mask = labels != label_pad_token_id
-        
-        xm.mark_step() 
-        
+                
         # dummy token; we'll ignore the losses on these tokens later
         labels = torch.where(labels == label_pad_token_id, 0, labels)
 
