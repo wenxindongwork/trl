@@ -537,6 +537,7 @@ class ORPOTrainer(Trainer):
     @staticmethod
     def concatenated_inputs(
         batch: Dict[str, Union[List, torch.LongTensor]],
+        max_length: int,
         is_encoder_decoder: bool = False,
         label_pad_token_id: int = -100,
         padding_value: int = 0,
@@ -557,9 +558,9 @@ class ORPOTrainer(Trainer):
         concatenated_batch = {}
 
         if is_encoder_decoder:
-            max_length = max(batch["chosen_labels"].shape[1], batch["rejected_labels"].shape[1])
+            max_length = max(batch["chosen_labels"].shape[1], batch["rejected_labels"].shape[1], max_length)
         else:
-            max_length = max(batch["chosen_input_ids"].shape[1], batch["rejected_input_ids"].shape[1])
+            max_length = max(batch["chosen_input_ids"].shape[1], batch["rejected_input_ids"].shape[1], max_length)
 
         for k in batch:
             if k.startswith("chosen") and isinstance(batch[k], torch.Tensor):
@@ -677,6 +678,7 @@ class ORPOTrainer(Trainer):
         """
         concatenated_batch = self.concatenated_inputs(
             batch,
+            self.max_length,
             is_encoder_decoder=self.is_encoder_decoder,
             label_pad_token_id=self.label_pad_token_id,
             padding_value=self.padding_value,
