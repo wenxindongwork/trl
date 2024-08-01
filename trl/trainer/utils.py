@@ -35,6 +35,7 @@ from transformers import (
     TrainerState,
     TrainingArguments,
 )
+import torch_xla.core.xla_model as xm
 
 from ..import_utils import is_peft_available, is_unsloth_available, is_xpu_available
 from ..trainer.model_config import ModelConfig
@@ -643,19 +644,24 @@ def compute_accuracy(eval_pred) -> Dict[str, float]:
     return {"accuracy": accuracy}
 
 
-def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:
+def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:    
+
+    original_device = tensor.device
+    xm.mark_step()
+    tensor = tensor.cpu()
+    
     if tensor.size(dim) >= length:
-        return tensor
+        return tensor.to(original_device)
     else:
         pad_size = list(tensor.shape)
         pad_size[dim] = length - tensor.size(dim)
         return torch.cat(
             [
                 tensor,
-                pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device=tensor.device),
+                pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device = tensor.device),
             ],
             dim=dim,
-        )
+        ).to(original_device)
 
 
 def disable_dropout_in_model(model: torch.nn.Module) -> None:

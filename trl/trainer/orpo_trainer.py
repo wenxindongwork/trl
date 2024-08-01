@@ -614,8 +614,7 @@ class ORPOTrainer(Trainer):
             The log odds ratio of the chosen responses over the rejected responses ratio for logging purposes.
             The `log(sigmoid(log_odds_chosen))` for logging purposes.
         """
-
-        # Derived from Eqs. (4) and (7) from https://huggingface.co/papers/2403.07691 by using log identities and exp(log(P(y|x)) = P(y|x)
+        # Derived from Eqs. (4) and (7) from https://arxiv.org/abs/2403.07691 by using log identities and exp(log(P(y|x)) = P(y|x)
         log_odds = (policy_chosen_logps - policy_rejected_logps) - (
             torch.log1p(-torch.exp(policy_chosen_logps)) - torch.log1p(-torch.exp(policy_rejected_logps))
         )
@@ -625,9 +624,11 @@ class ORPOTrainer(Trainer):
 
         chosen_rewards = self.beta * (policy_chosen_logps.to(self.accelerator.device)).detach()
         rejected_rewards = self.beta * (policy_rejected_logps.to(self.accelerator.device)).detach()
-
+        
+        ratio_mean = torch.mean(ratio)
+        log_odds_mean = torch.mean(log_odds)
         xm.mark_step() #needed because .item() moves object to CPU
-        return losses, chosen_rewards, rejected_rewards, torch.mean(ratio).item(), torch.mean(log_odds).item()
+        return losses, chosen_rewards, rejected_rewards, ratio_mean.item(), log_odds_mean.item()
 
     @staticmethod
     def get_batch_logps(
@@ -660,7 +661,7 @@ class ORPOTrainer(Trainer):
         xm.mark_step() 
         
         # dummy token; we'll ignore the losses on these tokens later
-        labels[labels == label_pad_token_id] = 0
+        labels = torch.where(labels == label_pad_token_id, 0, labels)
 
         per_token_logps = torch.gather(logits.log_softmax(-1), dim=2, index=labels.unsqueeze(2)).squeeze(2)
 
