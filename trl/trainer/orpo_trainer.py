@@ -628,8 +628,7 @@ class ORPOTrainer(Trainer):
         
         ratio_mean = torch.mean(ratio)
         log_odds_mean = torch.mean(log_odds)
-        xm.mark_step() #needed because .item() moves object to CPU
-        return losses, chosen_rewards, rejected_rewards, ratio_mean.item(), log_odds_mean.item()
+        return losses, chosen_rewards, rejected_rewards, ratio_mean, log_odds_mean
 
     @staticmethod
     def get_batch_logps(
@@ -787,8 +786,8 @@ class ORPOTrainer(Trainer):
         metrics[f"{prefix}logits/rejected"] = policy_rejected_logits.detach().cpu().mean()
         metrics[f"{prefix}logits/chosen"] = policy_chosen_logits.detach().cpu().mean()
         metrics[f"{prefix}nll_loss"] = policy_nll_loss.detach().cpu().mean()
-        metrics[f"{prefix}log_odds_ratio"] = log_odds_ratio
-        metrics[f"{prefix}log_odds_chosen"] = log_odds_chosen
+        metrics[f"{prefix}log_odds_ratio"] = log_odds_ratio.item()
+        metrics[f"{prefix}log_odds_chosen"] = log_odds_chosen.item()
 
         if self.aux_loss_enabled:
             loss += getattr(model.config, "router_aux_loss_coef", 0.0) * aux_loss
