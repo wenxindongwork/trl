@@ -645,13 +645,9 @@ def compute_accuracy(eval_pred) -> Dict[str, float]:
 
 
 def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:    
-
-    original_device = tensor.device
-    xm.mark_step()
-    tensor = tensor.cpu()
     
     if tensor.size(dim) >= length:
-        return tensor.to(original_device)
+        return tensor
     else:
         pad_size = list(tensor.shape)
         pad_size[dim] = length - tensor.size(dim)
@@ -661,7 +657,7 @@ def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float
                 pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device = tensor.device),
             ],
             dim=dim,
-        ).to(original_device)
+        )
 
 
 def disable_dropout_in_model(model: torch.nn.Module) -> None:

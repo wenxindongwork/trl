@@ -393,6 +393,7 @@ class ORPOTrainer(Trainer):
         We also create the labels for the chosen/rejected responses, which are of length equal to
             the sum of the length of the prompt and the chosen/rejected response, with
             label_pad_token_id  for the prompt tokens.
+        #wenxin: here we should also pad to max_sequence_length. 
         """
         batch = {}
         prompt = feature["prompt"]
@@ -531,7 +532,15 @@ class ORPOTrainer(Trainer):
                 batch["chosen_decoder_input_ids"] = model.prepare_decoder_input_ids_from_labels(
                     labels=torch.tensor(batch["chosen_labels"])
                 )
-
+        # Pad the sequences to max_length 
+        for k in batch:
+            if "labels" in k or self.is_encoder_decoder:
+                pad_value = self.label_pad_token_id
+            elif k.endswith("_input_ids"):
+                pad_value = self.padding_value
+            elif k.endswith("_attention_mask"):
+                pad_value = 0
+            batch[k] = pad_to_length(batch[k], self.max_length, pad_value=pad_value)
         return batch
 
     @staticmethod
@@ -557,34 +566,17 @@ class ORPOTrainer(Trainer):
         """
         concatenated_batch = {}
 
-        if is_encoder_decoder:
-            max_length = max(batch["chosen_labels"].shape[1], batch["rejected_labels"].shape[1], max_length)
-        else:
-            max_length = max(batch["chosen_input_ids"].shape[1], batch["rejected_input_ids"].shape[1], max_length)
-
         for k in batch:
             if k.startswith("chosen") and isinstance(batch[k], torch.Tensor):
-                if "labels" in k or is_encoder_decoder:
-                    pad_value = label_pad_token_id
-                elif k.endswith("_input_ids"):
-                    pad_value = padding_value
-                elif k.endswith("_attention_mask"):
-                    pad_value = 0
                 concatenated_key = k.replace("chosen", "concatenated")
-                concatenated_batch[concatenated_key] = pad_to_length(batch[k], max_length, pad_value=pad_value)
+                concatenated_batch[concatenated_key] = batch[k]
         for k in batch:
             if k.startswith("rejected") and isinstance(batch[k], torch.Tensor):
-                if "labels" in k or is_encoder_decoder:
-                    pad_value = label_pad_token_id
-                elif k.endswith("_input_ids"):
-                    pad_value = padding_value
-                elif k.endswith("_attention_mask"):
-                    pad_value = 0
                 concatenated_key = k.replace("rejected", "concatenated")
                 concatenated_batch[concatenated_key] = torch.cat(
                     (
                         concatenated_batch[concatenated_key],
-                        pad_to_length(batch[k], max_length, pad_value=pad_value),
+                        batch[k]
                     ),
                     dim=0,
                 ).to(device=device)
