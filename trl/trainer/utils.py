@@ -35,7 +35,6 @@ from transformers import (
     TrainerState,
     TrainingArguments,
 )
-import torch_xla.core.xla_model as xm
 
 from ..import_utils import is_peft_available, is_unsloth_available, is_xpu_available
 from ..trainer.model_config import ModelConfig
@@ -646,8 +645,7 @@ def compute_accuracy(eval_pred) -> Dict[str, float]:
     return {"accuracy": accuracy}
 
 
-def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:    
-    
+def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:
     if tensor.size(dim) >= length:
         return tensor
     else:
@@ -656,7 +654,7 @@ def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float
         return torch.cat(
             [
                 tensor,
-                pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device = tensor.device),
+                pad_value * torch.ones(*pad_size, dtype=tensor.dtype, device=tensor.device),
             ],
             dim=dim,
         )
