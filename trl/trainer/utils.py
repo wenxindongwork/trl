@@ -646,6 +646,7 @@ def compute_accuracy(eval_pred) -> Dict[str, float]:
 
 
 def pad_to_length(tensor: torch.Tensor, length: int, pad_value: Union[int, float], dim: int = -1) -> torch.Tensor:
+    tensor = torch.Tensor(tensor)
     if tensor.size(dim) >= length:
         return tensor
     else:

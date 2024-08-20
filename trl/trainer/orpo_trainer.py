@@ -401,7 +401,6 @@ class ORPOTrainer(Trainer):
         We also create the labels for the chosen/rejected responses, which are of length equal to
             the sum of the length of the prompt and the chosen/rejected response, with
             label_pad_token_id  for the prompt tokens.
-        #wenxin: here we should also pad to max_sequence_length. 
         """
         batch = {}
         prompt = feature["prompt"]
@@ -535,7 +534,8 @@ class ORPOTrainer(Trainer):
                 batch["chosen_decoder_input_ids"] = model.prepare_decoder_input_ids_from_labels(
                     labels=torch.tensor(batch["chosen_labels"])
                 )
-        # Pad the sequences to max_length 
+
+        #Pad the sequences to max_length 
         for k in batch:
             if "labels" in k or self.is_encoder_decoder:
                 pad_value = self.label_pad_token_id
