@@ -41,9 +41,6 @@ class ScriptArguments:
     )
     push_to_hub: Optional[bool] = field(default=False, metadata={"help": "Push the dataset to the Hugging Face Hub"})
     task: str = field(default="sentiment", metadata={"help": "The task of the dataset"})
-    dataset_num_proc: Optional[int] = field(
-        default=None, metadata={"help": "The number of workers to use to tokenize the data"}
-    )
 
 
 task_to_filename = {
@@ -109,7 +106,7 @@ if __name__ == "__main__":
             return True
 
     print("=== Before filtering ===", ds)
-    ds = ds.filter(filter, num_proc=args.dataset_num_proc)
+    ds = ds.filter(filter, load_from_cache_file=False)
     print("=== After filtering ===", ds)
 
     # here we simply take the preferred sample as the chosen one and the first non-preferred sample as the rejected one
@@ -146,7 +143,11 @@ if __name__ == "__main__":
             assert chosen_sample != rejected_sample
         return row
 
-    ds = ds.map(process, batched=True, num_proc=args.dataset_num_proc)
+    ds = ds.map(
+        process,
+        batched=True,
+        load_from_cache_file=False,
+    )
     for key in ds:  # reorder columns
         ds[key] = ds[key].select_columns(["prompt", "chosen", "rejected"])
     if args.push_to_hub:

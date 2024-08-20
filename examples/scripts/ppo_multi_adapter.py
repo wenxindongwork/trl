@@ -15,7 +15,6 @@ from dataclasses import dataclass, field
 from typing import Optional
 
 import torch
-from accelerate import PartialState
 from datasets import load_dataset
 from peft import LoraConfig
 from tqdm import tqdm
@@ -49,16 +48,13 @@ class ScriptArguments:
         default=False, metadata={"help": "Use score normalization. Only applicable if use_score_scaling is True"}
     )
     score_clip: Optional[float] = field(default=None, metadata={"help": "Score clipping"})
-    dataset_num_proc: Optional[int] = field(
-        default=None, metadata={"help": "The number of workers to use to tokenize the data"}
-    )
 
 
 parser = HfArgumentParser(ScriptArguments)
 script_args = parser.parse_args_into_dataclasses()[0]
 
 
-def create_and_prepare_dataset(tokenizer, num_proc):
+def create_and_prepare_dataset(tokenizer):
     dataset = load_dataset(script_args.dataset_name, split="train[:1%]")
 
     input_size = LengthSampler(input_min_text_length, input_max_text_length)
@@ -69,7 +65,7 @@ def create_and_prepare_dataset(tokenizer, num_proc):
         example["query"] = tokenizer.decode(example["input_ids"])
         return example
 
-    dataset = dataset.map(tokenize, batched=False, num_proc=num_proc)
+    dataset = dataset.map(tokenize, batched=False)
     dataset.set_format("torch")
     return dataset
 
@@ -96,10 +92,7 @@ tokenizer = AutoTokenizer.from_pretrained(script_args.model_name)
 
 tokenizer.pad_token = tokenizer.eos_token
 
-# Compute that only on the main process for faster data processing.
-# see: https://github.com/huggingface/trl/pull/1255
-with PartialState().local_main_process_first():
-    dataset = create_and_prepare_dataset(tokenizer, script_args.dataset_num_proc)
+dataset = create_and_prepare_dataset(tokenizer)
 
 
 def collator(data):

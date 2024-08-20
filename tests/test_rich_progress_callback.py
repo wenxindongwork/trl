@@ -19,10 +19,11 @@ class DummyModel(nn.Module):
 
 
 class TestRichProgressCallback(unittest.TestCase):
-    def setUp(self):
-        self.dummy_model = DummyModel()
-        self.dummy_train_dataset = Dataset.from_list([{"x": 1.0, "y": 2.0}] * 5)
-        self.dummy_val_dataset = Dataset.from_list([{"x": 1.0, "y": 2.0}] * 101)
+    @classmethod
+    def setUpClass(cls):
+        cls.dummy_model = DummyModel()
+        cls.dummy_train_dataset = Dataset.from_list([{"x": 1.0, "y": 2.0}] * 5)
+        cls.dummy_val_dataset = Dataset.from_list([{"x": 1.0, "y": 2.0}] * 101)
 
     def test_rich_progress_callback_logging(self):
         with tempfile.TemporaryDirectory() as tmp_dir:

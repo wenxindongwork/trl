@@ -1,3 +1,4 @@
+import multiprocessing
 import sys
 from dataclasses import dataclass, field
 from typing import Optional
@@ -31,9 +32,6 @@ class ScriptArguments:
         default=True, metadata={"help": "Update the main revision of the repository"}
     )
     push_to_hub: Optional[bool] = field(default=False, metadata={"help": "Push the dataset to the Hugging Face Hub"})
-    dataset_num_proc: Optional[int] = field(
-        default=None, metadata={"help": "The number of workers to use for dataset processing"}
-    )
 
 
 # GPT-4 generated 😄 Define a function to process the input and extract the dialogue into structured format
@@ -79,7 +77,11 @@ if __name__ == "__main__":
         row["prompt"] = row["chosen"][0]["content"]
         return row
 
-    ds = ds.map(process, num_proc=args.dataset_num_proc)
+    ds = ds.map(
+        process,
+        num_proc=1 if args.debug else multiprocessing.cpu_count(),
+        load_from_cache_file=False,
+    )
     if args.push_to_hub:
         revisions = ["main"] if args.update_main_revision else []
         revisions.append(args.revision)

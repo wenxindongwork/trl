@@ -35,12 +35,13 @@ if is_peft_available():
 
 @require_torch_gpu
 class SFTTrainerSlowTester(unittest.TestCase):
-    def setUp(self):
-        self.train_dataset = load_dataset("imdb", split="train[:10%]")
-        self.eval_dataset = load_dataset("imdb", split="test[:10%]")
-        self.dataset_text_field = "text"
-        self.max_seq_length = 128
-        self.peft_config = LoraConfig(
+    @classmethod
+    def setUpClass(cls):
+        cls.train_dataset = load_dataset("imdb", split="train[:10%]")
+        cls.eval_dataset = load_dataset("imdb", split="test[:10%]")
+        cls.dataset_text_field = "text"
+        cls.max_seq_length = 128
+        cls.peft_config = LoraConfig(
             lora_alpha=16,
             lora_dropout=0.1,
             r=8,

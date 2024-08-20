@@ -24,16 +24,17 @@ from trl import IterativeSFTTrainer
 
 
 class IterativeTrainerTester(unittest.TestCase):
-    def setUp(self):
-        self.model_id = "trl-internal-testing/dummy-GPT2-correct-vocab"
-        self.model = AutoModelForCausalLM.from_pretrained(self.model_id)
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_id)
-        self.tokenizer.pad_token = self.tokenizer.eos_token
+    @classmethod
+    def setUpClass(cls):
+        cls.model_id = "trl-internal-testing/dummy-GPT2-correct-vocab"
+        cls.model = AutoModelForCausalLM.from_pretrained(cls.model_id)
+        cls.tokenizer = AutoTokenizer.from_pretrained(cls.model_id)
+        cls.tokenizer.pad_token = cls.tokenizer.eos_token
 
         # get t5 as seq2seq example:
         model_id = "trl-internal-testing/tiny-T5ForConditionalGeneration-correct-vocab-calibrated"
-        self.t5_model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
-        self.t5_tokenizer = AutoTokenizer.from_pretrained(model_id)
+        cls.t5_model = AutoModelForSeq2SeqLM.from_pretrained(model_id)
+        cls.t5_tokenizer = AutoTokenizer.from_pretrained(model_id)
 
     def _init_tensor_dummy_dataset(self):
         dummy_dataset_dict = {
@@ -68,6 +69,11 @@ class IterativeTrainerTester(unittest.TestCase):
         dummy_dataset.set_format("torch")
         return dummy_dataset
 
+    def setUp(self):
+        # initialize trainer
+        self.model.train()
+        return super().setUp()
+
     @parameterized.expand(
         [
             ["gpt2", "tensor"],
@@ -101,11 +107,7 @@ class IterativeTrainerTester(unittest.TestCase):
                 tokenizer = self.t5_tokenizer
 
             args = TrainingArguments(
-                output_dir=tmp_dir,
-                per_device_train_batch_size=2,
-                max_steps=2,
-                learning_rate=1e-3,
-                report_to="none",
+                output_dir=tmp_dir, per_device_train_batch_size=2, max_steps=2, learning_rate=1e-3
             )
             iterative_trainer = IterativeSFTTrainer(model=model, args=args, tokenizer=tokenizer)
             iterative_trainer.optimizer.zero_grad = partial(iterative_trainer.optimizer.zero_grad, set_to_none=False)

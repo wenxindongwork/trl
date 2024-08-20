@@ -167,16 +167,14 @@ if __name__ == "__main__":
     train_dataset = get_stack_exchange_paired(data_dir="data/rl", sanity_check=script_args.sanity_check)
     train_dataset = train_dataset.filter(
         lambda x: len(x["prompt"]) + len(x["chosen"]) <= script_args.max_length
-        and len(x["prompt"]) + len(x["rejected"]) <= script_args.max_length,
-        num_proc=script_args.num_proc,
+        and len(x["prompt"]) + len(x["rejected"]) <= script_args.max_length
     )
 
     # 3. Load evaluation dataset
     eval_dataset = get_stack_exchange_paired(data_dir="data/evaluation", sanity_check=True)
     eval_dataset = eval_dataset.filter(
         lambda x: len(x["prompt"]) + len(x["chosen"]) <= script_args.max_length
-        and len(x["prompt"]) + len(x["rejected"]) <= script_args.max_length,
-        num_proc=script_args.num_proc,
+        and len(x["prompt"]) + len(x["rejected"]) <= script_args.max_length
     )
 
     # 4. initialize training arguments:

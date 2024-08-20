@@ -46,7 +46,6 @@ class RewardTrainerTester(unittest.TestCase):
                 gradient_accumulation_steps=4,
                 learning_rate=9e-1,
                 eval_strategy="steps",
-                report_to="none",
             )
 
             # fmt: off

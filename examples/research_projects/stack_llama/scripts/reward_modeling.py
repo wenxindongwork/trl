@@ -198,8 +198,7 @@ train_dataset = train_dataset.map(
     remove_columns=original_columns,
 )
 train_dataset = train_dataset.filter(
-    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length,
-    num_proc=num_proc,
+    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length
 )
 
 eval_dataset = eval_dataset.map(
@@ -209,8 +208,7 @@ eval_dataset = eval_dataset.map(
     remove_columns=original_columns,
 )
 eval_dataset = eval_dataset.filter(
-    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length,
-    num_proc=num_proc,
+    lambda x: len(x["input_ids_j"]) <= script_args.max_length and len(x["input_ids_k"]) <= script_args.max_length
 )
 
 

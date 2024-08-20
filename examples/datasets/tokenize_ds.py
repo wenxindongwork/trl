@@ -1,3 +1,4 @@
+import multiprocessing
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -18,9 +19,6 @@ class ScriptArguments:
         default="trl-internal-testing/hh-rlhf-helpful-base-trl-style", metadata={"help": "The dataset to load"}
     )
     model: str = field(default="gpt2", metadata={"help": "The model to use for tokenization"})
-    dataset_num_proc: Optional[int] = field(
-        default=None, metadata={"help": "The number of workers to use to tokenize the data"}
-    )
 
 
 if __name__ == "__main__":
@@ -38,5 +36,9 @@ if __name__ == "__main__":
         row["rejected"] = tokenizer.apply_chat_template(row["rejected"], tokenize=False)
         return row
 
-    ds = ds.map(process, num_proc=args.dataset_num_proc)
+    ds = ds.map(
+        process,
+        num_proc=1 if args.debug else multiprocessing.cpu_count(),
+        load_from_cache_file=False,
+    )
     print(ds["train"][0]["chosen"])
