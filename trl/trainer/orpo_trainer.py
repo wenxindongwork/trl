@@ -621,9 +621,7 @@ class ORPOTrainer(Trainer):
         chosen_rewards = self.beta * (policy_chosen_logps.to(self.accelerator.device)).detach()
         rejected_rewards = self.beta * (policy_rejected_logps.to(self.accelerator.device)).detach()
         
-        ratio_mean = torch.mean(ratio)
-        log_odds_mean = torch.mean(log_odds)
-        return losses, chosen_rewards, rejected_rewards, ratio_mean, log_odds_mean
+        return losses, chosen_rewards, rejected_rewards, torch.mean(ratio), torch.mean(log_odds)
 
     @staticmethod
     def get_batch_logps(
@@ -652,7 +650,7 @@ class ORPOTrainer(Trainer):
             labels = labels[:, 1:].clone()
             logits = logits[:, :-1, :]
         loss_mask = labels != label_pad_token_id
-                
+
         # dummy token; we'll ignore the losses on these tokens later
         labels = torch.where(labels == label_pad_token_id, 0, labels)
 
